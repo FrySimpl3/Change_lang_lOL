@@ -23,9 +23,34 @@ namespace Change_lOL
         }
         string[] localeCode;
         string installPath;
-        private void Form1_Load(object sender, EventArgs e)
+        void errorlog(string error)
+        {
+            try
+            {
+                System.Threading.Thread t = new System.Threading.Thread(() => {
+
+                    string _date = System.DateTime.Now.ToString("[ HH:mm:ss dd/MM/yyyy ]\t");
+                    System.IO.File.AppendAllText("Fry.ini", _date + error + "\n");
+                });
+                t.IsBackground = true;
+                t.Start();
+            }
+            catch (Exception msg)
+            {
+                MessageBox.Show(msg.ToString());
+            }
+        }
+        void load()
         {
             string pathRegion = "region.txt";
+
+            if (!System.IO.File.Exists(pathRegion))
+            {
+                using (var client = new System.Net.WebClient())
+                {
+                    client.DownloadFile("https://cdn.discordapp.com/attachments/1019878981450870864/1061956348172054568/region.txt", pathRegion);
+                }
+            }
             if (System.IO.File.Exists(pathRegion))
             {
                 string[] arrTemp = System.IO.File.ReadAllLines(pathRegion);
@@ -33,23 +58,23 @@ namespace Change_lOL
                 for (int i = 0; i < arrTemp.Length; i++)
                 {
                     string[] Temp = arrTemp[i].Split('|');
-                    termsListlocaleCode.Add(Temp[0].Trim());
+                    termsListlocaleCode.Add(Temp[0]);
                     comboBox1.Items.Add(Temp[1].Trim());
                 }
                 comboBox1.SelectedIndex = 7;
                 localeCode = termsListlocaleCode.ToArray();
                 installPath = Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Riot Game league_of_legends.live", "InstallLocation", "").ToString();
             }
-            else
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            try
             {
-                DialogResult rs = MessageBox.Show("not Exists region.txt yes Dowload FIle","Fry1714",MessageBoxButtons.YesNo);
-                if (rs == DialogResult.Yes)
-                {
-                    using (var client = new System.Net.WebClient())
-                    {
-                        client.DownloadFile("https://cdn.discordapp.com/attachments/1019878981450870864/1061956348172054568/region.txt", pathRegion);
-                    }
-                }
+                load();
+            }
+            catch (Exception msg)
+            {
+                errorlog(msg.ToString());
             }
         }
         private void CreateShortcut()
@@ -71,7 +96,14 @@ namespace Change_lOL
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            CreateShortcut();
+            try
+            {
+                CreateShortcut();
+            }
+            catch (Exception msg)
+            {
+                errorlog(msg.ToString());
+            }
         }
     }
 }
